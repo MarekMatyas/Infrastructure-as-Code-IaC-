@@ -153,7 +153,7 @@ The main difference between the two methods is how the servers are configured. I
 
 
 ---
-The script below creates the "controller" VM with Ubuntu 18.04 OS, and hard-coded IP address.
+The script below creates the Ansible controller with Ubuntu 18.04 OS, and hard-coded IP address.
 
 
 ![](cont.png)
@@ -165,7 +165,7 @@ This script creates the "web" VM with the same OS but different IP address.
 
 ---
 
-And lastly, this script creates the 3rd VM called "db". 
+And lastly, this script creates the 2nd VM called "db". 
 
 
 ![](db.png)
