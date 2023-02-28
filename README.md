@@ -36,6 +36,14 @@ Orchestration automates and coordinates complex workflows across multiple system
 
 - Puppet: A tool for automating the configuration and management of infrastructure components across systems and environments.
 
+- Chef: In IaC, Chef is typically used to define infrastructure and application configurations as code, which can be version-controlled and shared across teams. This allows more consistent and repeatable deployments and reduces the potential for human error. 
+
+![](IaC.jpg)
+
+
+
+---
+
 
 ## Who is using IaC ?
 
@@ -62,6 +70,15 @@ Terraform is an open-source infrastructure as code software tool that enables yo
 Ansible is a software tool that provides simple but powerful automation for cross-platform computer support.
 
 Ansible doesn't depend on agent software and has no additional security infrastructure, so it's easy to deploy.
+
+**Agent software** typically refers to a piece of software that runs on a target system or device and is responsible for collecting and sending data back to a central management system. 
+
+## Ansible VS Terraform
+
+While both Ansible and Terraform are used for infrastructure automation,
+Ansible is mainly focused on configuration management, while Terraform is primarily focused on infrastructure provisioning and management.
+
+Depending on your specific needs, you may choose one tool over the other or use both in conjunction to achieve your automation goals. 
 
 
 ## Push configuration vs pull configuration
