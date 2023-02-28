@@ -8,7 +8,7 @@ This means that instead of manually setting up servers, networks and other resou
 ## Why do we use it ? 
 
 - Automates infrastructure provisioning and configuration
-- Ensures consistency accross different environments
+- Ensures consistency across different environments
 - Enables scalability and flexibility
 - Provides version control for infrastructure definitions
 - Reduces chances of human error
@@ -94,6 +94,64 @@ The main difference between the two methods is how the servers are configured. I
 ![](image.png)
 
 - Create a `vagrantfile` in VS code and import the script to create 3 VMs using oracle.
+
+```
+# -*- mode: ruby -*-
+ # vi: set ft=ruby :
+ 
+ # All Vagrant configuration is done below. The "2" in Vagrant.configure
+ # configures the configuration version (we support older styles for
+ # backwards compatibility). Please don't change it unless you know what
+ 
+ # MULTI SERVER/VMs environment 
+ #
+ Vagrant.configure("2") do |config|
+    # creating are Ansible controller
+      config.vm.define "controller" do |controller|
+        
+       controller.vm.box = "bento/ubuntu-18.04"
+       
+       controller.vm.hostname = 'controller'
+       
+       controller.vm.network :private_network, ip: "192.168.33.12"
+       
+       # config.hostsupdater.aliases = ["development.controller"] 
+       
+      end 
+    # creating first VM called web  
+      config.vm.define "web" do |web|
+        
+        web.vm.box = "bento/ubuntu-18.04"
+       # downloading ubuntu 18.04 image
+    
+        web.vm.hostname = 'web'
+        # assigning host name to the VM
+        
+        web.vm.network :private_network, ip: "192.168.33.10"
+        #   assigning private IP
+        
+        #config.hostsupdater.aliases = ["development.web"]
+        # creating a link called development.web so we can access web page with this link instread of an IP   
+            
+      end
+      
+    # creating second VM called db
+      config.vm.define "db" do |db|
+        
+        db.vm.box = "bento/ubuntu-18.04"
+        
+        db.vm.hostname = 'db'
+        
+        db.vm.network :private_network, ip: "192.168.33.11"
+        
+        #config.hostsupdater.aliases = ["development.db"]     
+      end
+    
+    
+    end
+```
+
+
 ---
 The script below creates the "controller" VM with Ubuntu 18.04 OS, and hard-coded IP address.
 
