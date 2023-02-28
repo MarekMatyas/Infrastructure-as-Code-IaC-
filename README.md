@@ -200,16 +200,49 @@ Next in the controller VM we prepare Ansible to install.
  `sudo apt-get install ansible -y` to install and check the version`ansible --version`
 
 
-To be edited: 
+**NOTE**: This is how we get into the "hosts" file.  
  ```
 vagrant@controller:~$ cd /etc
 vagrant@controller:/etc$ cd ansible/
 vagrant@controller:/etc/ansible$ pwd
 /etc/ansible
-vagrant@controller:/etc/ansible$ /etc/ansible
--bash: /etc/ansible: Is a directory
-vagrant@controller:/etc/ansible$
 ```
+
+Edit the hosts file using `cd /etc/ansible` in the controller and `sudo nano hosts` to be able to ping the "web" machine.
+- After "defaults" section we import this `host_key_checking = false` and save it.
+ Dont forget to use the IP of web, specify the connection type->ssh, and the log in as well as the password. In this case it is `vagrant` for both for easy of use. 
+```
+[web]
+192.168.33.10 ansible_connection=ssh ansible_ssh_user=vagrant ansible_ssh_pass=vagrant
+```
+
+
+Now if we would like to ping the web machine we will need to change some configuration of web machine.
+To connect using ssh from controller to web we use `ssh vagrant@192.168.33.10`(IP is of the web VM)
+In the web:
+- `cd /etc/ssh`
+- `sudo nano sshd_config`
+
+We need to uncomment a few lines of code:
+- `PermitRootLogin prohibit-password`
+- `PasswordAuthentication yes`
+- `ChallengeResponseAuthentication no`
+
+After we run `sudo systemctl restart ssh`. 
+
+- In the controller we run `sudo ansible -m ping web` and the following should be the output:
+
+```
+192.168.33.10 | SUCCESS => {
+    "ansible_facts": {
+        "discovered_interpreter_python": "/usr/bin/python"
+    },
+    "changed": false,
+    "ping": "pong"
+}
+```
+
+
 
 
 
