@@ -73,6 +73,9 @@ The main difference between the two methods is how the servers are configured. I
 
 # Guide
 
+
+![](image.png)
+
 - Create a `vagrantfile` in VS code and import the script to create 3 VMs using oracle.
 ---
 The script below creates the "controller" VM with Ubuntu 18.04 OS, and hard-coded IP address.
@@ -121,6 +124,8 @@ Next in the controller VM we prepare Ansible to install.
 
  `sudo apt-get install ansible -y` to install and check the version`ansible --version`
 
+
+To be edited: 
  ```
 vagrant@controller:~$ cd /etc
 vagrant@controller:/etc$ cd ansible/
