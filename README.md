@@ -236,7 +236,7 @@ Here we can see that we have the RSA key.
 
 
 
-Edit the hosts file using `cd /etc/ansible` to navigate to the correct location of the hosts file in the controller and `sudo nano hosts` to edit the file to be able to ping the "web" machine. We will need to edit this file as instructed below.
+Edit the hosts file using `cd /etc/ansible` to navigate to the correct location of the hosts file in the **controller** and `sudo nano hosts` to edit the file to be able to ping the "web" machine. We will need to edit this file as instructed below.
 
  Dont forget to use the IP of web, as seen in the below code, specify the connection type->ssh, and the log in as well as the password. In this case it is `vagrant` for both for ease of use. 
 ```
@@ -328,7 +328,7 @@ As we can see on the diagram above, now we will need to install the required dep
 [Linux commands for installing dependencies](https://github.com/MarekMatyas/tech201_virtualization)
  
 
-We also need to make sure we configure the `mongod.conf` file using `sudo nano /etc/mongod.conf` and set the bindIP to `0.0.0.0`. 
+We also need to make sure we configure the `mongodb.conf` file using `sudo nano /etc/mongodb.conf` and set the bindIP to `0.0.0.0`. 
 
 After that we will need to `restart` and `enable` mongod. 
 
@@ -532,3 +532,103 @@ If all previous configuration has been success then this should be our output:
 Next we can check if the app is actually up and running by using the web VM's IP in the browser with the port 3000 because at this stage the reverse proxy has not been configured. 
 
 ![](pictures/app_displayed.png)
+
+---
+
+### DB(Database) part of the architecture:
+
+
+
+We create another playbook called "mongod".
+
+```
+# Create a playbook to configure/install mongodb in our DB machine
+
+# name of the hosts/node
+---
+- hosts: db
+
+# let's find the facts
+  gather_facts: yes
+
+# We will need admin access
+  become: true
+
+# Now that we have access we can start adding the instructions to perform the tasks
+
+  tasks:
+  - name: Install mongodb most latest version
+    apt: pkg=mongodb state=present
+
+# Status available/running
+```
+
+
+Next we will need to add the db VM's IP to our "hosts" file located in our controller VM in `/etc/ansible` location the same way we did for the web VM previously for the machines to be able to communicate. 
+
+```
+[db]
+192.168.33.11 ansible_connection=ssh ansible_ssh_user=vagrant ansible_ssh_pass=vagrant
+```
+
+Then we can run the playbook. `sudo ansible-playbook mongod-playbook.yml`
+
+To check the status of the playbook we just ran we use `sudo ansible db -a "systemctl status mongodb"`
+
+![](pictures/status%2Cmon.png)
+
+
+Next we need to change config of mongoddb conf. (bindIP)
+
+bind IP- 0.0.0.0
+uncomment port = 27017
+
+and save 
+```
+sudo systemctl restart mongodb
+sudo systemctl enable mongodb
+```
+
+
+
+If this is successful we need to create env var in the web VM for the connection between web and db to be able to populate the app with posts. 
+
+We can do this by creating another playbook called "env_var-playbook.yml" using `sudo nano env_var-playbook.yml`
+
+```
+
+# This playbook is for creating an environment variable
+
+# --- to start the YAML file
+---
+# Where do we want this playbook to run
+# Add the name of the host(web)
+- hosts: web
+# Find the facts
+  gather_fact: yes
+# Gain admin access
+  become: yes
+# Now that we have access, we can start writting the instructions to perform this task:
+  tasks:
+  - name: Environment variable
+    shell: echo 'DB_HOST="mongodb://192.168.33.11:27017/posts"' >> ~/.bashrc && source .bashrc
+    args:
+      executable: /bin/bash
+```
+
+
+
+
+
+
+
+
+
+
+
+- navigate to app folder
+- create env var called DB_HOST= db-ip
+- if this works do npm start to see
+- if that works than we can make env var persistent in .bashrc file. and npm restart 
+
+and reverse proxy
