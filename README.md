@@ -222,12 +222,12 @@ vagrant@controller:/etc/ansible$ pwd
 
 **Ping**:
 
+Using `sudo ansible -m ping web` we can see if the machines are communicating between one another. At this present moment we should not be able to ping the web VM because we havent specified the web's and db's  IP address to our controller `hosts` file along with some other configuration as seen below. 
 
+In order to be able to ping the ****web** VM will need to change some configurations. 
 
-In order to be able to ping the web VM will need to change some configuration 
-
-
-
+First we can double-check if we have the RSA key.
+**RSA key location in web VM**:
 - `ls -a`
 - `cd .ssh`
 - `ls`
@@ -236,7 +236,7 @@ Here we can see that we have the RSA key.
 
 
 
-Edit the hosts file using `cd /etc/ansible` in the controller and `sudo nano hosts` to be able to ping the "web" machine. We will need to edit the file.
+Edit the hosts file using `cd /etc/ansible` to navigate to the correct location of the hosts file in the controller and `sudo nano hosts` to edit the file to be able to ping the "web" machine. We will need to edit this file as instructed below.
 
  Dont forget to use the IP of web, as seen in the below code, specify the connection type->ssh, and the log in as well as the password. In this case it is `vagrant` for both for ease of use. 
 ```
@@ -246,12 +246,14 @@ Edit the hosts file using `cd /etc/ansible` in the controller and `sudo nano hos
 
 
 Now if we would like to ping the web machine we will need to change some configuration of web machine.
-To connect using ssh from controller to web we use `ssh vagrant@192.168.33.10`(IP is of the web VM)
-In the web:
+To connect using ssh from controller to web we use `ssh vagrant@192.168.33.10`(IP is of the web VM).
+
+
+**In the web VM:**
 - `cd /etc`
 - `ls`
 - `cd ssh`
-- `sudo nano sshd_config`
+- `sudo nano sshd_config` 
 
 We need to make sure these lines of code are uncommented:
 - `PermitRootLogin prohibit-password`
@@ -260,7 +262,7 @@ We need to make sure these lines of code are uncommented:
 
 Now we will need to run `sudo systemctl restart ssh` for the changes to take effect.
 
-Now we need to edit the `ansible.conf` file in the controller:
+Now we need to edit the `ansible.conf` file in the **controller VM**:
 ```
 cd /etc/ansible
 ls
@@ -303,9 +305,9 @@ For more information and commands please click on this link -> [Ad hoc](https://
 
 If we would like to copy a file from the Ansible controller onto the web VM here are the steps:
 
-1. Create a file in the controller `sudo nano test.txt` and write some content into it
+1. Create a file in the controller `sudo nano test.txt` and write some content into it.
 
-2. `sudo ansible web -m ansible.builtin.copy -a "src=test.txt dest=test.txt"`- This command specifies the source: "test.txt"m and the destination: "test.txt"
+2. `sudo ansible web -m ansible.builtin.copy -a "src=test.txt dest=test.txt"`- This command specifies the source: "test.txt"m and the destination: "test.txt".
 
 3. Next we can check in the web VM if the file has been copied over with the content. 
 
@@ -318,9 +320,9 @@ If we would like to copy a file from the Ansible controller onto the web VM here
 
 As we can see on the diagram above, now we will need to install the required dependencies, packages and database into our VMs. 
 
-- Step1.- Install required dependencies on web(Nginx, pm2, node js) using playbook and shell script.
+- Step1.- Install required dependencies on web(Nginx, pm2, node js) using playbook and shell script. 
 - Step2.- Install mongoDB database on our db VM.
-- Step3.- Establish the connection between web and db by creating an environment variable.
+- Step3.- Establish the connection between web and db by implementing an environment variable.
 
 
 [Linux commands for installing dependencies](https://github.com/MarekMatyas/tech201_virtualization)
@@ -497,7 +499,7 @@ We need to make sure that we use more accessible directory when writing the scri
 # we need admin access
   become: true
 
-# we have the admin access, now we can add the instructions to perform the task
+# we have the admin acess, now we can add the instructions to perform the task
 # getting the app running on web machine
   tasks:
   - name: Starting the app on web machine
@@ -505,7 +507,12 @@ We need to make sure that we use more accessible directory when writing the scri
       #!/bin/bash
       cd /home/task_repo/app
       npm install
-      node app.js
+      pm2 kill
+      pm2 start app.js
+
+
+# this command will start the app and run it on the background
+
 
 ```
 
@@ -513,7 +520,7 @@ We need to make sure that we use more accessible directory when writing the scri
 Notice we are using shell script(#!/bin/bash) again to:
 - Navigate into the correct directory `cd /home/task_repo/app`
 - Install npm `npm install`
-- To run the app `node app.js`
+- `pm2 kill` and `pm2 start app.js` to start the app and run it on the background so we won't be locked out of the terminal. 
 
 To run the this playbook we use `sudo ansible-playbook run_app-playbook.yml`
 
