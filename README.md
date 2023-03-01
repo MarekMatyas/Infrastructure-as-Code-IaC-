@@ -91,7 +91,7 @@ The main difference between the two methods is how the servers are configured. I
 # Ansible architecture guide step.1
 
 
-![](image.png)
+![](pictures/image.png)
 
 - Create a `vagrantfile` in VS code and import the script to create 3 VMs using oracle.
 
@@ -156,19 +156,29 @@ The main difference between the two methods is how the servers are configured. I
 The script below creates the Ansible controller with Ubuntu 18.04 OS, and hard-coded IP address.
 
 
-![](cont.png)
+
+![](pictures/cont.png)
+
 
 ---
+
 
 This script creates the "web" VM with the same OS but different IP address.
-![](web.png)
+
+
+![](pictures/web.png)
+
+
+
 
 ---
+
 
 And lastly, this script creates the 2nd VM called "db". 
 
 
-![](db.png)
+![](pictures/db.png)
+
 
 ---
 
@@ -302,7 +312,7 @@ If we would like to copy a file from the Ansible controller onto the web VM here
 
 # Ansible architecture guide step.2
 
-![](new_diagram.png)
+![](pictures/new_diagram.png)
 
 As we can see on the diagram above, now we will need to install the required dependencies, packages and database into our VMs. 
 
@@ -456,9 +466,13 @@ Now to run this playbook we use the same command as before `sudo ansible-playboo
 
 --- 
 
+
+
 Now we can move onto making a playbook called "run_app-playbook.yml" that will run the app for us.
 
 To create a playbook we use `sudo nano run_app-playbook.yml`
+
+We need to make sure that we use more accessible directory when writing the script for the playbook to be ran in the web VM. (home/task_repo/app). If we encounter a problem in this area, we can copy the entire app folder where we have our app script to more suitable location. 
 
 ```
 # create a playbook to run app in web machine
@@ -492,6 +506,7 @@ To create a playbook we use `sudo nano run_app-playbook.yml`
       node app.js
 
 ```
+
 
 Notice we are using shell script(#!/bin/bash) again to:
 - Navigate into the correct directory `cd /home/task_repo/app`
