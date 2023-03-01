@@ -412,7 +412,10 @@ Next we will need create another playbook called `pm2` using `sudo nano.
 ---
 
 **Possible blocker at this stage**:
+
+
 If we would like to install node and pm2, this may cause problem due to the pm2 may have issues with the version of node. We need to make sure that we install node version 10. and above as seen in the script below. 
+
 ---
 
 The content for this playbook should be as follows:
