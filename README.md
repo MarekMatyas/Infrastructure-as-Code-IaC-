@@ -297,6 +297,8 @@ Next in the controller we run `sudo ansible -m ping web` and the following shoul
 
 - `sudo ansible all -a "ls -a"` to find hidden files
 
+For more information and commands please click on this link -> [Ad hoc](https://docs.ansible.com/ansible/latest/command_guide/intro_adhoc.html)
+
 ---
 
 If we would like to copy a file from the Ansible controller onto the web VM here are the steps:
