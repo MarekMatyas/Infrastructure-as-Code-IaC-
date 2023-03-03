@@ -203,11 +203,12 @@ Next in the controller VM we prepare Ansible to install.
 ```
  `sudo apt-add-repository ppa:ansible/ansible`
  `sudo apt-get install software-properties-common` 
+ `sudo apt-get install ansible -y`
 ```
+- Check the version`ansible --version`
 
 - Then we can run `sudo apt-get update -y` to apply updates. 
-
- `sudo apt-get install ansible -y` to install and check the version`ansible --version`
+`
 
 
 **NOTE**: This is how we get into the "hosts" file.  
@@ -648,27 +649,37 @@ We can do this by creating another playbook called "env_var-playbook.yml" using 
 
 Now we can attempt to automate process of creating EC2 using a playbook.
 
-We will need 
+We will need: 
 - generate ssh key pair .pem using `ssh-keygen -t rsa -b 4096 -f ~/.ssh/devops_tech201`, This will generate `.pem` file with private and public key that will be created in the `.ssh` directory where we store all of our keys. 
 
-ansible-vault
 ---
 
-- sudo vi test.txt pres I
-to savve ESC, :wq and enter
+- We will also need to instal certain dependecies and packages that AWS requires:
+```
+sudo apt install python3-pip 
+alias python=python3
+pip3 install awscli
+pip3 install boto3
+```
+The way we can check if we have the right version we can use `python --version` and this needs to be version 3 and above. In terms of the `boto3` we can use the pip package manager to display the vesion of boto3 using `pip3 show boto3`. 
 
-- sudo apt install tree
-- tree to display a tree of folders
-- mkdir group_vars to make a file called group_vars
+---
+
+**ansible-vault**. Ansible vault is where we import our aws access and secret keys where we set a password for more security. 
+
+
+- `sudo apt install tree` for more aesthetically pleasing folder structure.
+- `tree` to display a tree of folders
+- `sudo mkdir group_vars` to create a folder called "group_vars"
 - navigate into that group_vars folder using `cd`
 - create a folder called "all" `mkdir all` then type `tree` to display that folder
 - `cd` into all folder 
 -  This should be your folders structure: `/etc/ansible/group_vars/all$`
 
 
-- `sudo ansible-vault create pass.yml` - create the file where we put the access and secret keys provided to us previously. It might ask for password which in this case is "vagrant" for ease of use. 
+- `sudo ansible-vault create pass.yml` - create the file called "pass.yml" where we put the access and secret keys provided to us previously. It might ask for password which in this case is "vagrant" for ease of use. 
 
-in there we import the keys mentioned earlier in this fashion:
+In there we import the keys mentioned earlier in this fashion:
 
 - aws_access_key: "import access key"
 - aws_secret_key: " import secret key"
@@ -677,10 +688,94 @@ to save we use `ESC` -> `:wq` -> `Enter`
 Side note:
 - `sudo ansible-vault edit pass.yml` to edit the previously created file 
 
-To double check if the keys are safely correct
 
 
+Here is a template of playbook used for creating an EC2 instance:
 
+**NOTE**: Remember to edit the variables the way that is related to your case! 
+
+```
+# AWS playbook
+---
+
+- hosts: localhost
+  connection: local
+  gather_facts: False
+
+  vars:
+    key_name: my_aws
+    region: us-east-2
+    image: ami-0f93b5fd8f220e428 # https://cloud-images.ubuntu.com/locator/ec2/
+    id: "web-app"
+    sec_group: "{{ id }}-sec"
+
+  tasks:
+
+    - name: Facts
+      block:
+
+      - name: Get instances facts
+        ec2_instance_facts:
+          aws_access_key: "{{aws_access_key}}"
+          aws_secret_key: "{{aws_secret_key}}"
+          region: "{{ region }}"
+        register: result
+
+      - name: Instances ID
+        debug:
+          msg: "ID: {{ item.instance_id }} - State: {{ item.state.name }} - Public DNS: {{ item.public_dns_name }}"
+        loop: "{{ result.instances }}"
+
+      tags: always
+
+
+    - name: Provisioning EC2 instances
+      block:
+
+      - name: Upload public key to AWS
+        ec2_key:
+          name: "{{ key_name }}"
+          key_material: "{{ lookup('file', '/your/path/to/.ssh/{{ key_name }}.pub') }}"
+          region: "{{ region }}"
+          aws_access_key: "{{aws_access_key}}"
+          aws_secret_key: "{{aws_secret_key}}"
+
+      - name: Create security group
+        ec2_group:
+          name: "{{ sec_group }}"
+          description: "Sec group for app {{ id }}"
+          # vpc_id: 12345
+          region: "{{ region }}"
+          aws_access_key: "{{aws_access_key}}"
+          aws_secret_key: "{{aws_secret_key}}"
+          rules:
+            - proto: tcp
+              ports:
+                - 22
+              cidr_ip: 0.0.0.0/0
+              rule_desc: allow all on ssh port
+        register: result_sec_group
+
+      - name: Provision instance(s)
+        ec2:
+          aws_access_key: "{{aws_access_key}}"
+          aws_secret_key: "{{aws_secret_key}}"
+          key_name: "{{ key_name }}"
+          id: "{{ id }}"
+          group_id: "{{ result_sec_group.group_id }}"
+          image: "{{ image }}"
+          instance_type: t2.micro
+          region: "{{ region }}"
+          wait: true
+          count: 1
+          # exact_count: 2
+          # count_tag:
+          #   Name: App
+          # instance_tags:
+          #   Name: App
+
+      tags: ['never', 'create_ec2']
+```
 
 ---
 - to run the aws_playbook we use this command to ask for password and to create an EC2 instance `ansible-playbook playbook.yml --ask-vault-pass --tags create_ec2`
