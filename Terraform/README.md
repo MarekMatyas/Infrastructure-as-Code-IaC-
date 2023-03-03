@@ -144,3 +144,293 @@ If we wish to destroy the instance from our terminal, we can run `terraform dest
 
 
 
+# Deploying EC2 instance using AMI in Terraform with provisioning
+
+First things first, it is common DevOps practice to implement and test each part of the process so let's look at how we can achieve this. 
+
+Previosly we have created `main.tf` file that we use to orchestrate certain processes. 
+
+Here we will be looking into creating EC2 instance with own VPC,Internet gateway, Subnet, Route table, and own specific security group rules. 
+
+
+For the security purposes we will create another file in the same directory called `variable.tf` where we store our value for abstraction.
+
+The syntax for creating a variable that we be used in our `main.tf` file is as follows:
+
+```terraform
+variable "name_of_the_variable" {
+    default = "value_of_the_variable"
+}
+```
+
+The way we can call the variable in the `main.tf` file:
+
+`vpc_id = var.name_of_the_variable`
+
+So let's move onto actually turning all of this into a code. 
+We need to realize the strategy and steps in which we will need to implement this. 
+
+
+### NOTE:
+As mentioned previously, we need to implement these snippets of code each time to test the functionality using these commands in the VS code bash terminal:
+
+- `terraform plan`
+- `terraform apply`
+- If we would like to destroy the instance or previous provision we can use `terraform destroy`
+
+Another reason why we do this in these steps is that we will need to acquire the ID's of each element from AWS provider after we `terraform apply` each segment.
+---
+
+**1. First we select a provider and region:**
+```terraform
+# Select a provider and a region
+provider "aws" {
+  region = "eu-west-1"
+}
+```
+---
+**2. Next we can create a VPC for our infrastructure.**
+```terraform
+# Create a VPC
+resource "aws_vpc" "marek_tech201_VPC_terraform" {
+  cidr_block = var.CIDR_VPC
+  instance_tenancy     = "default"
+  tags = {
+    Name = "marek_tech201_VPC_terraform"
+  }
+}
+```
+---
+3. **Then we can create an Internet Gateway using the VPC.**
+```terraform
+resource "aws_internet_gateway" "marek_tech201_IG_terraform" {
+  vpc_id = var.VPC_ID
+
+  tags = {
+    Name = "marek_tech201_IG_terraform"
+  }
+}
+```
+---
+4. **We can now create public subnet using the same VPC**
+```terraform
+resource "aws_subnet" "marek_tech201_public_SN_terraform" {
+  vpc_id = var.VPC_ID
+  cidr_block = var.CIDR_pub_sub
+
+  tags = {
+    Name = "marek_tech201_public_SN_terraform"
+  }
+}
+```
+---
+5. **Now we need to configure the Route table**
+```terraform
+resource "aws_route_table" "marek_tech201_public_RT" {
+  vpc_id = var.VPC_ID
+
+  route {
+    cidr_block = var.CIDR_pub_RT
+    gateway_id = var.IG_ID
+  }
+    tags = {
+    Name = "marek_tech201_public_RT_terraform"
+  }
+}
+```
+---
+6. **We will also need to associate this Route table to the public subnet.**
+```terraform
+resource "aws_route_table_association" "marek_tech201_public_RT_association" {
+    subnet_id = var.subnet_ID
+    route_table_id = var.pub_RT_ID
+}
+```
+---
+
+7. **Now it's time to create the security group rules for our app**.
+
+**NOTE**: `igress` are the inbound rules and `egress` are the outbound rules.
+
+```terraform
+resource "aws_security_group" "marek_tech201_SG_APP_22_3000_80" {
+  name        = "allow ports 22, 3000, 80"
+  description = "marek_tech201_ports_22_3000_80"
+  vpc_id      = var.VPC_ID
+
+  ingress {
+    description      = "Allow_port_22_terraform_app"
+    from_port        = 22
+    to_port          = 22
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+  }
+    ingress {
+    description      = "Allow_port_80_terraform_app"
+    from_port        = 80
+    to_port          = 80
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+  }
+    ingress {
+    description      = "Allow_port_3000_terraform_app"
+    from_port        = 3000
+    to_port          = 3000
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "marek_tech201_SG_terraform_app"
+  }
+}
+```
+---
+
+8. **Lastly, we create the EC2 instance that will inherit all of these configurations that we previously orchestrated.**
+```terraform
+resource "aws_instance" "app_instance" {
+    key_name = "devops-tech201" 
+    ami = var.webapp_ami_id
+    instance_type = "t2.micro" 
+    subnet_id = var.subnet_ID
+    vpc_security_group_ids = [var.sec_group_terraform]
+    associate_public_ip_address = true
+    tags = {
+        Name = "marek_tech201_terraform_app"
+    }
+}
+```
+
+--- 
+
+Here is the full content of the `main.tf` file:
+
+```terraform
+# Select a provider and a region
+provider "aws" {
+  region = "eu-west-1"
+}
+# Create a VPC
+resource "aws_vpc" "marek_tech201_VPC_terraform" {
+  cidr_block = var.CIDR_VPC
+  instance_tenancy     = "default"
+  tags = {
+    Name = "marek_tech201_VPC_terraform"
+  }
+}
+# Create an Internet Gateway using VPC previously created 
+resource "aws_internet_gateway" "marek_tech201_IG_terraform" {
+  vpc_id = var.VPC_ID
+
+  tags = {
+    Name = "marek_tech201_IG_terraform"
+  }
+}
+# Create a public subnet using the same VPC
+resource "aws_subnet" "marek_tech201_public_SN_terraform" {
+  vpc_id = var.VPC_ID
+  cidr_block = var.CIDR_pub_sub
+
+  tags = {
+    Name = "marek_tech201_public_SN_terraform"
+  }
+}
+
+# Configuring a public route table
+resource "aws_route_table" "marek_tech201_public_RT" {
+  vpc_id = var.VPC_ID
+
+  route {
+    cidr_block = var.CIDR_pub_RT
+    gateway_id = var.IG_ID
+  }
+    tags = {
+    Name = "marek_tech201_public_RT_terraform"
+  }
+}
+# Associate the public RT to public subnet
+resource "aws_route_table_association" "marek_tech201_public_RT_association" {
+    subnet_id = var.subnet_ID
+    route_table_id = var.pub_RT_ID
+}
+
+# Configuring public security group rules for APP
+resource "aws_security_group" "marek_tech201_SG_APP_22_3000_80" {
+  name        = "allow ports 22, 3000, 80"
+  description = "marek_tech201_ports_22_3000_80"
+  vpc_id      = var.VPC_ID
+
+  ingress {
+    description      = "Allow_port_22_terraform_app"
+    from_port        = 22
+    to_port          = 22
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+  }
+    ingress {
+    description      = "Allow_port_80_terraform_app"
+    from_port        = 80
+    to_port          = 80
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+  }
+    ingress {
+    description      = "Allow_port_3000_terraform_app"
+    from_port        = 3000
+    to_port          = 3000
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "marek_tech201_SG_terraform_app"
+  }
+}
+    
+
+
+
+
+
+# launch ec2
+
+
+
+resource "aws_instance" "app_instance" {
+    key_name = "devops-tech201" 
+    ami = var.webapp_ami_id
+    instance_type = "t2.micro" 
+    subnet_id = var.subnet_ID
+    vpc_security_group_ids = [var.sec_group_terraform]
+    associate_public_ip_address = true
+    tags = {
+        Name = "marek_tech201_terraform_app"
+    }
+}
+```
+
+---
+
+After we launched the instance we will need to connect to it using GitBash, set permision to our key pair "devops_tech201" and run these commands to get the app displayed in our browser:
+- `sudo apt-get update -y`
+- `sudo apt-get upgrade -y`
+- `chmod 400 devops-tech201.pem`
+- `npm install`
+- `node app.js`
+
+After this the app should be ready and listening on the port specified port. 
