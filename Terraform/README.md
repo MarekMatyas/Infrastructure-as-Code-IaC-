@@ -17,7 +17,7 @@ To download, navigate to this link -> [Terraform download](https://developer.has
 
 To install it we will need to extract the file that has been downloaded and move the `.exe` file to newly created folder called "Terraform" in our `C:/`
 
-To install terraform, there is a quick and simple step guide -> [Terraform install](https://www.youtube.com/watch?v=SkcRSJWNRS8)
+To install terraform, there is a quick and simple step guide -> [Terraform install](https://www.youtube.com/watch?v=SkcRSJWNRS8). **Be sure to use this guide to install terraform only!**
 
 - After we installed terraform, we can open GitBash terminal as ADMIN and type in `terraform --version` to confirm the successful installation.
 
@@ -39,11 +39,11 @@ In terms of the Load Balancers, VPC's and other set up, that is where Terraform 
 
 
 
-- **Environment variabels guide**:
+- **Environment variables guide**:
 
 To upload AWS credentials we need follow these steps:
 
-- In you search bar, type in "Edit the system environment variables"
+- In your windows search bar, type in "Edit the system environment variables"
 
 - Go to advanced section and click on `Environment variables`
 
