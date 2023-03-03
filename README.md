@@ -537,9 +537,11 @@ Next we can check if the app is actually up and running by using the web VM's IP
 
 ### DB(Database) part of the architecture:
 
+We need to connect into the controller first. 
 
+We create another playbook called "mongod" `sudo nano mongodb-playbook.yml` using this command
 
-We create another playbook called "mongod".
+The Yaml file below is how we configure the playbook to install mongoDB. 
 
 ```
 # Create a playbook to configure/install mongodb in our DB machine
@@ -563,35 +565,50 @@ We create another playbook called "mongod".
 # Status available/running
 ```
 
+Before we run this playbook we will need to configure `hosts` file because as soon as we run this playbook, it will go to the `hosts` file to check the connection of db IP for communication.
 
-Next we will need to add the db VM's IP to our "hosts" file located in our controller VM in `/etc/ansible` location the same way we did for the web VM previously for the machines to be able to communicate. 
+So let's add the db VM's IP to our "hosts" file located in our controller VM in `/etc/ansible` location the same way we did for the web VM previously for the machines to be able to communicate. 
 
 ```
 [db]
 192.168.33.11 ansible_connection=ssh ansible_ssh_user=vagrant ansible_ssh_pass=vagrant
 ```
 
-Then we can run the playbook. `sudo ansible-playbook mongod-playbook.yml`
+After we save the `hosts` file we should be anle to run the playbook. `sudo ansible-playbook mongodb-playbook.yml`
 
-To check the status of the playbook we just ran we use `sudo ansible db -a "systemctl status mongodb"`
+To check the status of the playbook we just ran we use `sudo ansible db -a "systemctl status mongodb"` and this sends a request to our db machine and install mongoDB.
 
 ![](pictures/status%2Cmon.png)
 
+**Quick note**: Whenever we do `vagrant reload` there is a specific file full with dependecies that vagrant is pulling information from. That is located in our local host and we can display it by using `ls -a` to display hidden files and look for `vagrant` file. 
 
-Next we need to change config of mongoddb conf. (bindIP)
 
+Next we need to change configuration of mongodb.conf  and we will need to check the bindIP and make sure that that port is correct too. 
+
+We can do so from our controller using `ssh vagrant@192.168.33.11` which if the IP of db machine. 
+
+Once we are inside the db machine we navigate into `mongod.conf` using `cd /etc` -> `sudo nano mongodb.conf`
+
+What we will have to change is as follows to open this for everyone:
+
+```
 bind IP- 0.0.0.0
 uncomment port = 27017
+```
 
-and save 
+
+Lastly we save the file and run these commands for changes to take effect:
+
 ```
 sudo systemctl restart mongodb
 sudo systemctl enable mongodb
 ```
 
+---
 
+Next we can move onto the **environment variable.**
 
-If this is successful we need to create env var in the web VM for the connection between web and db to be able to populate the app with posts. 
+If all proccesses previously were successful, we need to create env var in the web VM for the connection between web and db to be able to populate the app with posts. 
 
 We can do this by creating another playbook called "env_var-playbook.yml" using `sudo nano env_var-playbook.yml`
 
@@ -624,6 +641,57 @@ We can do this by creating another playbook called "env_var-playbook.yml" using 
 
 
 
+---
+
+# Automating creating EC2 instance
+
+
+Now we can attempt to automate process of creating EC2 using a playbook.
+
+We will need 
+- generate ssh key pair .pem using `ssh-keygen -t rsa -b 4096 -f ~/.ssh/devops_tech201`, This will generate `.pem` file with private and public key that will be created in the `.ssh` directory where we store all of our keys. 
+
+ansible-vault
+---
+
+- sudo vi test.txt pres I
+to savve ESC, :wq and enter
+
+- sudo apt install tree
+- tree to display a tree of folders
+- mkdir group_vars to make a file called group_vars
+- navigate into that group_vars folder using `cd`
+- create a folder called "all" `mkdir all` then type `tree` to display that folder
+- `cd` into all folder 
+-  This should be your folders structure: `/etc/ansible/group_vars/all$`
+
+
+- `sudo ansible-vault create pass.yml` - create the file where we put the access and secret keys provided to us previously. It might ask for password which in this case is "vagrant" for ease of use. 
+
+in there we import the keys mentioned earlier in this fashion:
+
+- aws_access_key: "import access key"
+- aws_secret_key: " import secret key"
+to save we use `ESC` -> `:wq` -> `Enter`
+
+Side note:
+- `sudo ansible-vault edit pass.yml` to edit the previously created file 
+
+To double check if the keys are safely correct
+
+
+
+
+---
+- to run the aws_playbook we use this command to ask for password and to create an EC2 instance `ansible-playbook playbook.yml --ask-vault-pass --tags create_ec2`
+---
+
+
+ 
+
+
+
+
 
 
 - navigate to app folder
@@ -632,3 +700,10 @@ We can do this by creating another playbook called "env_var-playbook.yml" using 
 - if that works than we can make env var persistent in .bashrc file. and npm restart 
 
 and reverse proxy
+
+
+
+
+
+
+

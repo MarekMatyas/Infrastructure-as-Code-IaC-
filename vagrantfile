@@ -33,7 +33,7 @@
         #   assigning private IP
         
         #config.hostsupdater.aliases = ["development.web"]
-        # creating a link called development.web so we can access web page with this link instread of an IP   
+        # creating a link called development.web so we can access web page with this link instead of an IP   
             
       end
       
