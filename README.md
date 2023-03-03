@@ -781,20 +781,11 @@ Here is a template of playbook used for creating an EC2 instance:
 - to run the aws_playbook we use this command to ask for password and to create an EC2 instance `ansible-playbook playbook.yml --ask-vault-pass --tags create_ec2`
 ---
 
-
+Lastly, we can check on AWS if the EC2 instance has been launched. 
  
 
 
 
-
-
-
-- navigate to app folder
-- create env var called DB_HOST= db-ip
-- if this works do npm start to see
-- if that works than we can make env var persistent in .bashrc file. and npm restart 
-
-and reverse proxy
 
 
 
