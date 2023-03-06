@@ -128,7 +128,7 @@ If successful, this should be our output:
 ![](pictures/plan.png)
 
 
-Lastly, we can ran the final command `terraform apply` to applyly the changes defined in our Terraform configuration to our infrastructure and this will actually launch the instance. 
+Lastly, we can ran the final command `terraform apply` to apply the changes defined in our Terraform configuration to our infrastructure and this will actually launch the instance. 
 
 If we receive this output, we can go to AWS console and check if the instance has been launched and it is running correctly...
 
