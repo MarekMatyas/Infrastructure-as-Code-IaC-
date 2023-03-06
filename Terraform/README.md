@@ -4,7 +4,7 @@
 
 Terraform in orchestration tool in IaC(Infrastructure as code) owned by HashiCorp.
 
-It is tool for managing IaC. In simple terms, Terraform works by defining the desired state of your infrastructure in a configuration file, and then applying that configuration to you infrastructure. 
+In simple terms, Terraform works by defining the desired state of your infrastructure in a configuration file, and then applying that configuration to you infrastructure. 
 
 ---
 
