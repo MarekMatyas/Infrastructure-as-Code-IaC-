@@ -433,4 +433,4 @@ After we launched the instance we will need to connect to it using GitBash, set 
 - `npm install`
 - `node app.js`
 
-After this the app should be ready and listening on the port specified port. 
+After this the app should be ready and listening on the port specified in our security group. 
