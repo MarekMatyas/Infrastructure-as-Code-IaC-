@@ -115,7 +115,7 @@ resource "aws_instance" "app_instance" {
 ---
 
 
-**NOTE**: If we try to run `terraform init` command which serves to perform the task provided, in the VS code and it is isn't working, we might have to open GitBash terminal as ADMIN and navigate into the correct directory we can attempt to run `terraform init` again. 
+**NOTE**: If we try to run `terraform init` command which initializes the working directory containing Terraform configuration files, in the VS code and it is isn't working, we might have to open GitBash terminal as ADMIN and navigate into the correct directory we can attempt to run `terraform init` again. 
 
 If successful, this should be our output: 
 
@@ -128,7 +128,7 @@ If successful, this should be our output:
 ![](pictures/plan.png)
 
 
-Lastly, we can ran the final command `terraform apply` to aplly the changes defined in our Terraform configuration to our infrastructure and this will actually launch the instance. 
+Lastly, we can ran the final command `terraform apply` to applyly the changes defined in our Terraform configuration to our infrastructure and this will actually launch the instance. 
 
 If we receive this output, we can go to AWS console and check if the instance has been launched and it is running correctly...
 
