@@ -95,7 +95,7 @@ The main difference between the two methods is how the servers are configured. I
 
 - Create a `vagrantfile` in VS code and import the script to create 3 VMs using oracle.
 
-```
+```RUBY
 # -*- mode: ruby -*-
  # vi: set ft=ruby :
  
@@ -208,7 +208,7 @@ Next in the controller VM we prepare Ansible to install.
 - Check the version`ansible --version`
 
 - Then we can run `sudo apt-get update -y` to apply updates. 
-`
+
 
 
 **NOTE**: This is how we get into the "hosts" file.  
@@ -348,7 +348,7 @@ Create a playbook to configure Nginx web server in web machine
 
 `---` to start a YAML file
 
-```
+```YAML
 # Create a playbook to configure Nginx web server in web machine
 
 # Let's add --- 3 dashes to start a YAML file
@@ -376,8 +376,7 @@ Create a playbook to configure Nginx web server in web machine
 - `sudo ansible-playbook nginx-playbook.yml` to run the file 
 
 - `sudo ansible web -a "systemctl status nginx"` to check the status of nginx
-
-Check functionality insert the IP address of web VM. 
+ 
 
 ---
 
@@ -395,7 +394,7 @@ Then in our controller we can create a playbook called `clone_app`.
 
 - `sudo nano clone_app-playbook.yml`
 
-```
+```YAML
 ---
 # Creating a playbook to clone GitHub repository where our our script for app is located
 
@@ -435,7 +434,7 @@ If we would like to install node and pm2, this may cause problem due to the pm2 
 
 The content for this playbook should be as follows:
 
-```
+```YAML
 # Playbook to configure npm, pm2, nodejs using shell script
 
 ---
@@ -479,7 +478,7 @@ To create a playbook we use `sudo nano run_app-playbook.yml`
 
 We need to make sure that we use more accessible directory when writing the script for the playbook to be ran in the web VM. (home/task_repo/app). If we encounter a problem in this area, we can copy the entire app folder where we have our app script to more suitable location. 
 
-```
+```YAML
 # create a playbook to run app in web machine
 
 # let`s add --- 3 dashes  to start a YAML file
@@ -544,7 +543,7 @@ We create another playbook called "mongod" `sudo nano mongodb-playbook.yml` usin
 
 The Yaml file below is how we configure the playbook to install mongoDB. 
 
-```
+```YAML
 # Create a playbook to configure/install mongodb in our DB machine
 
 # name of the hosts/node
@@ -590,7 +589,9 @@ We can do so from our controller using `ssh vagrant@192.168.33.11` which if the 
 
 Once we are inside the db machine we navigate into `mongod.conf` using `cd /etc` -> `sudo nano mongodb.conf`
 
-What we will have to change is as follows to open this for everyone:
+What we will have to change is as follows to be accessible for everyone:
+
+**NOTE**: this is not a best practice for production environment!
 
 ```
 bind IP- 0.0.0.0
@@ -613,7 +614,7 @@ If all proccesses previously were successful, we need to create env var in the w
 
 We can do this by creating another playbook called "env_var-playbook.yml" using `sudo nano env_var-playbook.yml`
 
-```
+```YAML
 
 # This playbook is for creating an environment variable
 
@@ -694,7 +695,7 @@ Here is a template of playbook used for creating an EC2 instance:
 
 **NOTE**: Remember to edit the variables the way that is related to your case! 
 
-```
+```YAML
 # AWS playbook
 ---
 

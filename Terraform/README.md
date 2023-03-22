@@ -68,7 +68,7 @@ Our folder structures should be like this:
 
 Our script for `main.tf` will be written in **HCL(HashiCorp Configuration Language)** that is used for defining infrastructure as code using Terraform.
 
-```
+```h
 
 # launch ec2
 # which cloud provider tp specify
@@ -157,7 +157,7 @@ For the security purposes we will create another file in the same directory call
 
 The syntax for creating a variable that we be used in our `main.tf` file is as follows:
 
-```terraform
+```h
 variable "name_of_the_variable" {
     default = "value_of_the_variable"
 }
@@ -182,7 +182,7 @@ Another reason why we do this in these steps is that we will need to acquire the
 ---
 
 **1. First we select a provider and region:**
-```terraform
+```h
 # Select a provider and a region
 provider "aws" {
   region = "eu-west-1"
@@ -190,7 +190,7 @@ provider "aws" {
 ```
 ---
 **2. Next we can create a VPC for our infrastructure.**
-```terraform
+```h
 # Create a VPC
 resource "aws_vpc" "marek_tech201_VPC_terraform" {
   cidr_block = var.CIDR_VPC
@@ -202,7 +202,7 @@ resource "aws_vpc" "marek_tech201_VPC_terraform" {
 ```
 ---
 3. **Then we can create an Internet Gateway using the VPC.**
-```terraform
+```h
 resource "aws_internet_gateway" "marek_tech201_IG_terraform" {
   vpc_id = var.VPC_ID
 
@@ -213,7 +213,7 @@ resource "aws_internet_gateway" "marek_tech201_IG_terraform" {
 ```
 ---
 4. **We can now create public subnet using the same VPC**
-```terraform
+```h
 resource "aws_subnet" "marek_tech201_public_SN_terraform" {
   vpc_id = var.VPC_ID
   cidr_block = var.CIDR_pub_sub
@@ -225,7 +225,7 @@ resource "aws_subnet" "marek_tech201_public_SN_terraform" {
 ```
 ---
 5. **Now we need to configure the Route table**
-```terraform
+```h
 resource "aws_route_table" "marek_tech201_public_RT" {
   vpc_id = var.VPC_ID
 
@@ -240,7 +240,7 @@ resource "aws_route_table" "marek_tech201_public_RT" {
 ```
 ---
 6. **We will also need to associate this Route table to the public subnet.**
-```terraform
+```h
 resource "aws_route_table_association" "marek_tech201_public_RT_association" {
     subnet_id = var.subnet_ID
     route_table_id = var.pub_RT_ID
@@ -252,7 +252,7 @@ resource "aws_route_table_association" "marek_tech201_public_RT_association" {
 
 **NOTE**: `igress` are the inbound rules and `egress` are the outbound rules.
 
-```terraform
+```h
 resource "aws_security_group" "marek_tech201_SG_APP_22_3000_80" {
   name        = "allow ports 22, 3000, 80"
   description = "marek_tech201_ports_22_3000_80"
@@ -295,7 +295,7 @@ resource "aws_security_group" "marek_tech201_SG_APP_22_3000_80" {
 ---
 
 8. **Lastly, we create the EC2 instance that will inherit all of these configurations that we previously orchestrated.**
-```terraform
+```h
 resource "aws_instance" "app_instance" {
     key_name = "devops-tech201" 
     ami = var.webapp_ami_id
@@ -313,7 +313,7 @@ resource "aws_instance" "app_instance" {
 
 Here is the full content of the `main.tf` file:
 
-```terraform
+```h
 # Select a provider and a region
 provider "aws" {
   region = "eu-west-1"
@@ -434,3 +434,67 @@ After we launched the instance we will need to connect to it using GitBash, set 
 - `node app.js`
 
 After this the app should be ready and listening on the port specified in our security group. 
+
+
+### NOTE:
+
+**If we run `terraform destroy` and try to run the same script again, all of the ID's if separates segments of the code will be change due to creation of new VPC, Route table, Internet gateway and so on. In order to run the same script, one of the methods is to comment certain parts of the code and run segments one by one. Once a certain part of the code is created in your cloud provider, you can change the value of your variable accordingly. Then if you move onto next code and run that part, change the variable for that specific value. 
+
+---
+
+## Auto-Scaling group and Load Balancer
+
+If we would like to create ASG(Auto-Scaling group) and LB(Load Balancer), we will need to create **Launch Template** and additional **Subnet**.
+
+---
+
+```h
+resource "aws_launch_configuration" "terraform_template"{
+  name_prefix = "marek-tech201-L-T-terraform"
+  image_id = var.webapp_ami_id
+  instance_type = "t2.micro"
+  security_groups = [aws_security_group.marek_tech201_SG_APP_22_3000_80.id]
+
+  lifecycle {
+    create_before_destroy = true
+  }
+
+}
+
+# Auto scaling group
+resource "aws_autoscaling_group" "ASG_t" { 
+  min_size = 2
+  max_size = 3
+  desired_capacity = 2
+  launch_configuration = aws_launch_configuration.terraform_template.name
+  vpc_zone_identifier = [aws_subnet.marek_tech201_public_SN_terraform.id, aws_subnet.marek_tech201_public_SN_2.id]
+  
+}
+
+#Create a load balancer
+resource "aws_lb" "LB-app" {
+  name = "marek-tech201-LB-app-terraform"
+  internal = false
+  load_balancer_type = "application"
+  subnets = [aws_subnet.marek_tech201_public_SN_terraform.id,aws_subnet.marek_tech201_public_SN_2.id]
+
+}
+
+#Creating a second subnet
+resource "aws_subnet" "marek_tech201_public_SN_2" {
+  vpc_id = aws_vpc.marek_tech201_VPC_terraform.id
+  cidr_block = "10.0.245.192/26"
+  map_public_ip_on_launch = "true"
+  availability_zone = "eu-west-1a"
+  tags = {
+    Name = "new"
+  }
+  
+}
+```
+
+As we can see in the **Auto-Scaling Group**, we specify the number of instances to be managed when scaling in and out:
+
+- Minimum: 2
+- Maximum: 3
+- Desired: 2 
